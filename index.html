@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clima - Pronóstico del Tiempo</title>
+    <meta name="description"
+        content="Consulta el clima actual y pronóstico de 7 días para cualquier ubicación del mundo">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Animated Background -->
+    <div class="background-animation">
+        <div class="particles" id="particles"></div>
+    </div>
+
+    <main class="container">
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-wrapper">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Buscar ciudad..." autocomplete="off">
+                    <button class="location-btn" id="locationBtn" title="Usar mi ubicación">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M12 2v2m0 16v2M2 12h2m16 0h2" />
+                        </svg>
+                    </button>
+                </div>
+                <ul class="search-results" id="searchResults"></ul>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Cargando datos del clima...</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-message" id="errorMessage">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="m15 9-6 6M9 9l6 6" />
+            </svg>
+            <p id="errorText">Error al cargar el clima</p>
+        </div>
+
+        <!-- Weather Content -->
+        <div class="weather-content" id="weatherContent">
+            <!-- Current Weather Card -->
+            <section class="current-weather glass-card">
+                <div class="weather-main">
+                    <div class="weather-icon-container">
+                        <div class="weather-icon" id="weatherIcon"></div>
+                    </div>
+                    <div class="weather-info">
+                        <div class="city-header">
+                            <h1 class="city-name" id="cityName">--</h1>
+                            <span class="location-subtitle" id="locationSubtitle"></span>
+                        </div>
+                        <p class="current-date" id="currentDate">--</p>
+                        <div class="temperature-container">
+                            <span class="temperature" id="temperature">--</span>
+                            <span class="temperature-unit">°C</span>
+                        </div>
+                        <p class="weather-description" id="weatherDescription">--</p>
+                    </div>
+                </div>
+                <div class="weather-details">
+                    <div class="detail-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                        </svg>
+                        <div class="detail-info">
+                            <span class="detail-value" id="humidity">--%</span>
+                            <span class="detail-label">Humedad</span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path
+                                d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" />
+                        </svg>
+                        <div class="detail-info">
+                            <span class="detail-value" id="windSpeed">-- km/h</span>
+                            <span class="detail-label">Viento</span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5" />
+                            <path
+                                d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                        </svg>
+                        <div class="detail-info">
+                            <span class="detail-value" id="uvIndex">--</span>
+                            <span class="detail-label">Índice UV</span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25" />
+                            <path d="M8 16v2M8 20v2M12 18v2M12 22v2M16 16v2M16 20v2" />
+                        </svg>
+                        <div class="detail-info">
+                            <span class="detail-value" id="precipitation">-- mm</span>
+                            <span class="detail-label">Lluvia hoy</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hourly Forecast -->
+            <section class="hourly-forecast glass-card">
+                <h2>Pronóstico por Hora</h2>
+                <div class="hourly-scroll" id="hourlyForecast">
+                    <!-- Hourly items will be inserted here -->
+                </div>
+            </section>
+
+            <!-- 7 Day Forecast -->
+            <section class="weekly-forecast glass-card">
+                <h2>Pronóstico de 7 Días</h2>
+                <div class="forecast-list" id="weeklyForecast">
+                    <!-- Forecast items will be inserted here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>Datos proporcionados por <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
