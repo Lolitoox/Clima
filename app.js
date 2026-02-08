@@ -1,5 +1,5 @@
 // API Base URLs
-const GEO_API = 'https://geocoding-api.open-meteo.com/v1/search';
+const GEO_API = 'https://nominatim.openstreetmap.org/search';
 const WEATHER_API = 'https://api.open-meteo.com/v1/forecast';
 
 // DOM Elements
@@ -157,36 +157,40 @@ document.addEventListener('click', (e) => {
 
 async function searchCities(query) {
     try {
-        const response = await fetch(`${GEO_API}?name=${encodeURIComponent(query)}&count=10&language=es&format=json`);
+        // Usamos Nominatim con parámetros para obtener formato JSON y detalles
+        const response = await fetch(`${GEO_API}?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`);
         const data = await response.json();
 
-        if (data.results && data.results.length > 0) {
-            displaySearchResults(data.results);
+        // Nominatim devuelve un array directamente, no un objeto con propiedad .results
+        if (data && data.length > 0) {
+            displaySearchResults(data);
         } else {
             searchResults.innerHTML = '<li><span class="city">No se encontraron resultados</span></li>';
             searchResults.classList.add('active');
         }
     } catch (error) {
         console.error('Error searching cities:', error);
+        // Opcional: Manejo de errores silencioso o visual
     }
 }
 
 function displaySearchResults(results) {
     searchResults.innerHTML = results.map(result => {
-        const name = result.name;
-        // Open-Meteo nos da 'admin1' (estado/provincia) y 'country' (país)
-        const country = result.country || '';
-        const admin1 = result.admin1 || '';
-        const locationDetail = [admin1, country].filter(Boolean).join(', ');
+        const parts = result.display_name.split(', ');
+        const mainName = parts[0];
 
-        // Añadimos una bandera simple basada en el código de país (opcional, pero queda bien)
-        // Si no quieres banderas, puedes quitar la variable flagEmoji
-        const flagEmoji = result.country_code ? getFlagEmoji(result.country_code) : '';
+        const city = result.address?.city || result.address?.town || result.address?.village || result.address?.county || '';
+        const country = result.address?.country || '';
+
+        let locationSubtitle = [city, country].filter(Boolean).join(', ');
+        if (locationSubtitle.startsWith(mainName)) {
+            locationSubtitle = country;
+        }
 
         return `
-            <li data-lat="${result.latitude}" data-lon="${result.longitude}" data-name="${name}, ${country}">
-                <span class="city">${flagEmoji} ${name}</span>
-                <span class="country">${locationDetail}</span>
+            <li data-lat="${result.lat}" data-lon="${result.lon}" data-name="${mainName}">
+                <span class="city">${mainName}</span>
+                <span class="country">${locationSubtitle}</span>
             </li>
         `;
     }).join('');
@@ -200,7 +204,7 @@ function displaySearchResults(results) {
             const lon = li.dataset.lon;
             const name = li.dataset.name;
 
-            searchInput.value = name; // Muestra Ciudad, País en el input
+            searchInput.value = name;
             hideSearchResults();
             getWeather(lat, lon, name, false);
         });
