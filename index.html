@@ -75,8 +75,17 @@
                     </div>
                 </div>
 
-                <!-- DETALLES: Humedad, Viento, UV, Precipitación -->
+                <!-- DETALLES: Sensación térmica, Humedad, Viento, Presión, UV, Precipitación -->
                 <div class="weather-details">
+                    <div class="detail-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                        </svg>
+                        <div class="detail-info">
+                            <span class="detail-value" id="feelsLike">--°</span>
+                            <span class="detail-label">Sensación</span>
+                        </div>
+                    </div>
                     <div class="detail-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
@@ -94,6 +103,16 @@
                         <div class="detail-info">
                             <span class="detail-value" id="windSpeed">-- km/h</span>
                             <span class="detail-label">Viento</span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        <div class="detail-info">
+                            <span class="detail-value" id="pressure">-- hPa</span>
+                            <span class="detail-label">Presión</span>
                         </div>
                     </div>
                     <div class="detail-item">

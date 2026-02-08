@@ -18,8 +18,10 @@ const currentDate = document.getElementById('currentDate');
 const temperature = document.getElementById('temperature');
 const weatherDescription = document.getElementById('weatherDescription');
 const weatherIcon = document.getElementById('weatherIcon');
+const feelsLike = document.getElementById('feelsLike');
 const humidity = document.getElementById('humidity');
 const windSpeed = document.getElementById('windSpeed');
+const pressure = document.getElementById('pressure');
 const uvIndex = document.getElementById('uvIndex');
 const precipitation = document.getElementById('precipitation');
 const locationSubtitle = document.getElementById('locationSubtitle');
@@ -283,9 +285,9 @@ async function getWeather(lat, lon, name, isCurrentLocation = false) {
         const params = new URLSearchParams({
             latitude: lat,
             longitude: lon,
-            current: 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day,precipitation',
+            current: 'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,surface_pressure,is_day,precipitation',
             hourly: 'temperature_2m,weather_code,precipitation_probability',
-            daily: 'weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,precipitation_probability_max',
+            daily: 'weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,relative_humidity_2m_max,surface_pressure_max',
             timezone: 'auto',
             forecast_days: 9
         });
@@ -328,8 +330,12 @@ function updateWeather(data, name) {
     temperature.textContent = Math.round(current.temperature_2m);
     weatherDescription.textContent = weatherInfo.description;
     weatherIcon.innerHTML = getWeatherIcon(current.weather_code, isDay);
+
+    // New details: feels-like and pressure
+    feelsLike.textContent = `${Math.round(current.apparent_temperature)}°`;
     humidity.textContent = `${current.relative_humidity_2m}%`;
     windSpeed.textContent = `${Math.round(current.wind_speed_10m)} km/h`;
+    pressure.textContent = `${Math.round(current.surface_pressure)} hPa`;
     uvIndex.textContent = daily.uv_index_max?.[0]?.toFixed(1) || '--';
 
     // Precipitation info - show today's expected rain and probability
@@ -414,11 +420,21 @@ function updateWeeklyForecast(daily) {
         const dayDate = `${dateDisplay.getDate()}/${dateDisplay.getMonth() + 1}`;
 
         const code = daily.weather_code[i];
+        const weatherInfo = weatherCodes[code] || weatherCodes[0];
         const icon = getWeatherIcon(code, true);
         const maxTemp = Math.round(daily.temperature_2m_max[i]);
         const minTemp = Math.round(daily.temperature_2m_min[i]);
         const precipMm = daily.precipitation_sum?.[i] || 0;
         const precipProb = daily.precipitation_probability_max?.[i] || 0;
+
+        // Additional data for detail modal
+        const feelsMax = Math.round(daily.apparent_temperature_max?.[i] || maxTemp);
+        const feelsMin = Math.round(daily.apparent_temperature_min?.[i] || minTemp);
+        const windMax = Math.round(daily.wind_speed_10m_max?.[i] || 0);
+        const gustsMax = Math.round(daily.wind_gusts_10m_max?.[i] || 0);
+        const humidityMax = daily.relative_humidity_2m_max?.[i] || 0;
+        const pressureMax = Math.round(daily.surface_pressure_max?.[i] || 0);
+        const uvMax = daily.uv_index_max?.[i]?.toFixed(1) || '--';
 
         // Rain info column
         const rainInfo = precipProb > 0
@@ -426,7 +442,22 @@ function updateWeeklyForecast(daily) {
             : '<div class="forecast-rain"><span class="rain-prob">--</span></div>';
 
         html += `
-            <div class="forecast-item">
+            <div class="forecast-item" 
+                 data-day="${dayName}" 
+                 data-date="${dayDate}"
+                 data-description="${weatherInfo.description}"
+                 data-max="${maxTemp}"
+                 data-min="${minTemp}"
+                 data-feels-max="${feelsMax}"
+                 data-feels-min="${feelsMin}"
+                 data-wind="${windMax}"
+                 data-gusts="${gustsMax}"
+                 data-humidity="${humidityMax}"
+                 data-pressure="${pressureMax}"
+                 data-uv="${uvMax}"
+                 data-precip="${precipMm.toFixed(1)}"
+                 data-precip-prob="${precipProb}"
+                 data-icon="${code}">
                 <div class="forecast-day">
                     <span class="day-name">${dayName}</span>
                     <span class="day-date">${dayDate}</span>
@@ -437,11 +468,115 @@ function updateWeeklyForecast(daily) {
                     <span class="temp-high">${maxTemp}°</span>
                     <span class="temp-low">${minTemp}°</span>
                 </div>
+                <svg class="forecast-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
             </div>
         `;
     }
 
     weeklyForecast.innerHTML = html;
+
+    // Add click handlers for detail view
+    weeklyForecast.querySelectorAll('.forecast-item').forEach(item => {
+        item.addEventListener('click', () => showDayDetail(item));
+    });
+}
+
+// Show detailed view for a forecast day
+function showDayDetail(item) {
+    const data = item.dataset;
+    const icon = getWeatherIcon(parseInt(data.icon), true);
+
+    // Create modal element
+    const modal = document.createElement('div');
+    modal.className = 'day-detail-modal';
+    modal.innerHTML = `
+        <div class="day-detail-content glass-card">
+            <button class="close-modal">&times;</button>
+            <div class="day-detail-header">
+                <span class="detail-icon">${icon}</span>
+                <div class="detail-title">
+                    <h3>${data.day}, ${data.date}</h3>
+                    <p>${data.description}</p>
+                </div>
+            </div>
+            <div class="day-detail-temps">
+                <div class="temp-range">
+                    <span class="temp-high">${data.max}°</span>
+                    <span class="temp-separator">/</span>
+                    <span class="temp-low">${data.min}°</span>
+                </div>
+                <p class="feels-like-range">Sensación: ${data.feelsMax}° / ${data.feelsMin}°</p>
+            </div>
+            <div class="day-detail-grid">
+                <div class="detail-item-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
+                    </svg>
+                    <span class="value">${data.wind} km/h</span>
+                    <span class="label">Viento</span>
+                </div>
+                <div class="detail-item-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8c0-3-2-5-5-5s-5 2-5 5c0 4 5 8 5 8s5-4 5-8z"/>
+                        <path d="M8 14h8"/>
+                    </svg>
+                    <span class="value">${data.gusts} km/h</span>
+                    <span class="label">Ráfagas</span>
+                </div>
+                <div class="detail-item-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                    </svg>
+                    <span class="value">${data.humidity}%</span>
+                    <span class="label">Humedad</span>
+                </div>
+                <div class="detail-item-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    <span class="value">${data.pressure} hPa</span>
+                    <span class="label">Presión</span>
+                </div>
+                <div class="detail-item-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    <span class="value">${data.uv}</span>
+                    <span class="label">UV Máx</span>
+                </div>
+                <div class="detail-item-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"/>
+                        <path d="M8 16v2M8 20v2M12 18v2M12 22v2M16 16v2M16 20v2"/>
+                    </svg>
+                    <span class="value">${data.precip} mm (${data.precipProb}%)</span>
+                    <span class="label">Precipitación</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Animate in
+    requestAnimationFrame(() => {
+        modal.classList.add('active');
+    });
+
+    // Close handlers
+    const closeModal = () => {
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+    };
+
+    modal.querySelector('.close-modal').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
 }
 
 // ========================================
