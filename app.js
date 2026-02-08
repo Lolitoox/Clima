@@ -108,7 +108,7 @@ const weatherCodes = {
     99: { description: 'Tormenta con granizo fuerte', icon: 'thunderstorm', iconNight: 'thunderstorm', type: 'thunderstorm' }
 };
 
-// Days of the week in Spanish
+// Dias y meses
 const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -125,7 +125,7 @@ function getWeatherIcon(code, isDaytime = true) {
 }
 
 // ========================================
-// Search Functionality
+// Funciones de busqueda
 // ========================================
 
 let searchTimeout;
@@ -157,28 +157,11 @@ document.addEventListener('click', (e) => {
 
 async function searchCities(query) {
     try {
-        // Using Nominatim (OpenStreetMap) for maximum worldwide coverage
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=6&accept-language=es&addressdetails=1`);
+        const response = await fetch(`${GEO_API}?name=${encodeURIComponent(query)}&count=10&language=es&format=json`);
         const data = await response.json();
 
-        if (data && data.length > 0) {
-            // Filter to only show places (cities, towns, villages, etc.)
-            const places = data.filter(item =>
-                item.type === 'city' ||
-                item.type === 'town' ||
-                item.type === 'village' ||
-                item.type === 'municipality' ||
-                item.type === 'administrative' ||
-                item.class === 'place' ||
-                item.class === 'boundary'
-            );
-
-            if (places.length > 0) {
-                displaySearchResults(places);
-            } else {
-                // If no places found, show all results
-                displaySearchResults(data.slice(0, 5));
-            }
+        if (data.results && data.results.length > 0) {
+            displaySearchResults(data.results);
         } else {
             searchResults.innerHTML = '<li><span class="city">No se encontraron resultados</span></li>';
             searchResults.classList.add('active');
@@ -190,21 +173,19 @@ async function searchCities(query) {
 
 function displaySearchResults(results) {
     searchResults.innerHTML = results.map(result => {
-        // Extract location name and details from Nominatim response
-        const name = result.address?.city ||
-            result.address?.town ||
-            result.address?.village ||
-            result.address?.municipality ||
-            result.name ||
-            result.display_name.split(',')[0];
+        const name = result.name;
+        // Open-Meteo nos da 'admin1' (estado/provincia) y 'country' (país)
+        const country = result.country || '';
+        const admin1 = result.admin1 || '';
+        const locationDetail = [admin1, country].filter(Boolean).join(', ');
 
-        const state = result.address?.state || result.address?.region || '';
-        const country = result.address?.country || '';
-        const locationDetail = [state, country].filter(Boolean).join(', ');
+        // Añadimos una bandera simple basada en el código de país (opcional, pero queda bien)
+        // Si no quieres banderas, puedes quitar la variable flagEmoji
+        const flagEmoji = result.country_code ? getFlagEmoji(result.country_code) : '';
 
         return `
-            <li data-lat="${result.lat}" data-lon="${result.lon}" data-name="${name}">
-                <span class="city">${name}</span>
+            <li data-lat="${result.latitude}" data-lon="${result.longitude}" data-name="${name}, ${country}">
+                <span class="city">${flagEmoji} ${name}</span>
                 <span class="country">${locationDetail}</span>
             </li>
         `;
@@ -219,11 +200,20 @@ function displaySearchResults(results) {
             const lon = li.dataset.lon;
             const name = li.dataset.name;
 
-            searchInput.value = name;
+            searchInput.value = name; // Muestra Ciudad, País en el input
             hideSearchResults();
             getWeather(lat, lon, name, false);
         });
     });
+}
+
+// Función auxiliar para convertir código de país (ej: "AR") a emoji de bandera
+function getFlagEmoji(countryCode) {
+    const codePoints = countryCode
+        .toUpperCase()
+        .split('')
+        .map(char => 127397 + char.charCodeAt());
+    return String.fromCodePoint(...codePoints);
 }
 
 function hideSearchResults() {
@@ -293,7 +283,7 @@ async function getWeather(lat, lon, name, isCurrentLocation = false) {
             hourly: 'temperature_2m,weather_code,precipitation_probability',
             daily: 'weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,precipitation_probability_max',
             timezone: 'auto',
-            forecast_days: 8
+            forecast_days: 9
         });
 
         const response = await fetch(`${WEATHER_API}?${params}`);
@@ -409,11 +399,16 @@ function updateHourlyForecast(hourly) {
 function updateWeeklyForecast(daily) {
     let html = '';
 
-    // Start from index 1 to skip today (show next 7 days)
-    for (let i = 1; i < Math.min(daily.time.length, 8); i++) {
+    for (let i = 1; i <= 7; i++) {
+        if (!daily.time[i]) break;
+
         const date = new Date(daily.time[i]);
-        const dayName = daysOfWeek[date.getDay()];
-        const dayDate = `${date.getDate()}/${date.getMonth() + 1}`;
+        // Corrección de zona horaria simple para evitar que la fecha salte atrás
+        const dateDisplay = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+
+        const dayName = daysOfWeek[dateDisplay.getDay()];
+        const dayDate = `${dateDisplay.getDate()}/${dateDisplay.getMonth() + 1}`;
+
         const code = daily.weather_code[i];
         const icon = getWeatherIcon(code, true);
         const maxTemp = Math.round(daily.temperature_2m_max[i]);
