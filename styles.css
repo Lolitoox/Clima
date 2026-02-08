@@ -1265,10 +1265,10 @@ body.sunset {
 }
 
 .windy-container iframe {
-    width: 100%;
+    width: 100% !important;
     height: 400px;
     display: block;
-    border-radius: var(--radius-sm);
+    border: none;
 }
 
 .map-overlay-controls {
