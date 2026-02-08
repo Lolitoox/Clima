@@ -79,7 +79,7 @@
                 <div class="weather-details">
                     <div class="detail-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
                         </svg>
                         <div class="detail-info">
                             <span class="detail-value" id="feelsLike">--°</span>
@@ -107,8 +107,8 @@
                     </div>
                     <div class="detail-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M12 6v6l4 2"/>
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 6v6l4 2" />
                         </svg>
                         <div class="detail-info">
                             <span class="detail-value" id="pressure">-- hPa</span>
@@ -154,11 +154,33 @@
                     <!-- Items generados dinámicamente desde app.js -->
                 </div>
             </section>
+
+            <!-- MAPA WINDY -->
+            <section class="windy-map glass-card">
+                <h2>Mapa del Clima</h2>
+                <div class="windy-container" id="windyContainer">
+                    <iframe id="windyMap"
+                        src="https://embed.windy.com/embed2.html?lat=-31.25&lon=-61.49&detailLat=-31.25&detailLon=-61.49&width=650&height=450&zoom=6&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1"
+                        frameborder="0" allowfullscreen>
+                    </iframe>
+                    <div class="map-overlay-controls">
+                        <select id="windyLayer" class="layer-select">
+                            <option value="rain">Lluvia</option>
+                            <option value="wind">Viento</option>
+                            <option value="temp">Temperatura</option>
+                            <option value="clouds">Nubes</option>
+                            <option value="pressure">Presión</option>
+                            <option value="thunder">Tormentas</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
         </div>
     </main>
 
     <footer class="footer">
-        <p>Datos proporcionados por <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></p>
+        <p>Datos proporcionados por <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> |
+            Mapa por <a href="https://www.windy.com/" target="_blank" rel="noopener">Windy.com</a></p>
     </footer>
 
     <script src="app.js"></script>

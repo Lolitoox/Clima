@@ -299,14 +299,14 @@ async function getWeather(lat, lon, name, isCurrentLocation = false) {
         }
 
         const data = await response.json();
-        updateWeather(data, name);
+        updateWeather(data, name, lat, lon);
     } catch (error) {
         console.error('Weather API error:', error);
         showError('No se pudo cargar el clima. Intenta de nuevo.');
     }
 }
 
-function updateWeather(data, name) {
+function updateWeather(data, name, lat, lon) {
     const current = data.current;
     const hourly = data.hourly;
     const daily = data.daily;
@@ -354,6 +354,11 @@ function updateWeather(data, name) {
 
     // Update weekly forecast
     updateWeeklyForecast(daily);
+
+    // Update Windy map to current location
+    if (typeof updateWindyMap === 'function') {
+        updateWindyMap(lat, lon);
+    }
 
     // Show content
     showWeatherContent();
@@ -797,3 +802,40 @@ searchInput.addEventListener('keydown', (e) => {
         hideSearchResults();
     }
 });
+
+// ========================================
+// Windy Map Integration
+// ========================================
+
+const windyMap = document.getElementById('windyMap');
+const windyLayer = document.getElementById('windyLayer');
+
+// Current map state
+let currentMapLat = -31.25;
+let currentMapLon = -61.49;
+let currentMapLayer = 'rain';
+
+// Update Windy map to a new location
+function updateWindyMap(lat, lon) {
+    if (!windyMap) return;
+
+    currentMapLat = lat;
+    currentMapLon = lon;
+
+    const mapUrl = buildWindyUrl(lat, lon, currentMapLayer);
+    windyMap.src = mapUrl;
+}
+
+// Build Windy embed URL with given parameters
+function buildWindyUrl(lat, lon, layer) {
+    return `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=7&level=surface&overlay=${layer}&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1`;
+}
+
+// Handle layer change
+if (windyLayer) {
+    windyLayer.addEventListener('change', (e) => {
+        currentMapLayer = e.target.value;
+        const mapUrl = buildWindyUrl(currentMapLat, currentMapLon, currentMapLayer);
+        windyMap.src = mapUrl;
+    });
+}
