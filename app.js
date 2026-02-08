@@ -1,7 +1,3 @@
-// ========================================
-// Weather App - Open-Meteo API Integration
-// ========================================
-
 // API Base URLs
 const GEO_API = 'https://geocoding-api.open-meteo.com/v1/search';
 const WEATHER_API = 'https://api.open-meteo.com/v1/forecast';

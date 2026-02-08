@@ -14,13 +14,11 @@
 </head>
 
 <body>
-    <!-- Animated Background -->
     <div class="background-animation">
         <div class="particles" id="particles"></div>
     </div>
 
     <main class="container">
-        <!-- Search Section -->
         <section class="search-section">
             <div class="search-wrapper">
                 <div class="search-box">
@@ -40,13 +38,11 @@
             </div>
         </section>
 
-        <!-- Loading State -->
         <div class="loading" id="loading">
             <div class="loading-spinner"></div>
             <p>Cargando datos del clima...</p>
         </div>
 
-        <!-- Error State -->
         <div class="error-message" id="errorMessage">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10" />
@@ -55,17 +51,19 @@
             <p id="errorText">Error al cargar el clima</p>
         </div>
 
-        <!-- Weather Content -->
         <div class="weather-content" id="weatherContent">
-            <!-- Current Weather Card -->
+
+            <!-- CLIMA ACTUAL -->
             <section class="current-weather glass-card">
                 <div class="weather-main">
+                    <!-- Icono SVG del clima (generado dinámicamente) -->
                     <div class="weather-icon-container">
                         <div class="weather-icon" id="weatherIcon"></div>
                     </div>
                     <div class="weather-info">
                         <div class="city-header">
                             <h1 class="city-name" id="cityName">--</h1>
+                            <!-- Subtítulo "Ubicación actual" (visible solo con geolocalización) -->
                             <span class="location-subtitle" id="locationSubtitle"></span>
                         </div>
                         <p class="current-date" id="currentDate">--</p>
@@ -76,6 +74,8 @@
                         <p class="weather-description" id="weatherDescription">--</p>
                     </div>
                 </div>
+
+                <!-- DETALLES: Humedad, Viento, UV, Precipitación -->
                 <div class="weather-details">
                     <div class="detail-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -120,19 +120,19 @@
                 </div>
             </section>
 
-            <!-- Hourly Forecast -->
+            <!-- PRONÓSTICO POR HORA (próximas 24h) -->
             <section class="hourly-forecast glass-card">
                 <h2>Pronóstico por Hora</h2>
                 <div class="hourly-scroll" id="hourlyForecast">
-                    <!-- Hourly items will be inserted here -->
+                    <!-- Items generados dinámicamente desde app.js -->
                 </div>
             </section>
 
-            <!-- 7 Day Forecast -->
+            <!-- PRONÓSTICO SEMANAL (7 días) -->
             <section class="weekly-forecast glass-card">
                 <h2>Pronóstico de 7 Días</h2>
                 <div class="forecast-list" id="weeklyForecast">
-                    <!-- Forecast items will be inserted here -->
+                    <!-- Items generados dinámicamente desde app.js -->
                 </div>
             </section>
         </div>

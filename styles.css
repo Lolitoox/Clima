@@ -1,6 +1,3 @@
-/* ========================================
-   CSS Variables & Design Tokens
-   ======================================== */
 :root {
     /* Colors */
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -18,7 +15,10 @@
     --text-muted: rgba(255, 255, 255, 0.6);
 
     /* Typography */
-    --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-family: 'Outfit',
+        -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
 
     /* Spacing */
     --spacing-xs: 0.5rem;
