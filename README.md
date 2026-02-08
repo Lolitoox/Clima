@@ -29,7 +29,7 @@ No requiere instalación ni dependencias (como `npm` o `node_modules`). Es una a
 
 1. Clona este repositorio:
    ```bash
-   git clone https://github.com/TU_USUARIO/weather-app.git
+   git clone https://github.com/Lolitoox/Clima.git
    ```
 2. Abre el archivo `index.html` en tu navegador.
 3. ¡Listo!

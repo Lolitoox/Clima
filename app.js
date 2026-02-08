@@ -570,8 +570,38 @@ function showWeatherContent() {
 
 // Try to get user's location on load, or show default city
 document.addEventListener('DOMContentLoaded', () => {
-    // Default to Rafaela, Santa Fe, Argentina
-    getWeather(-31.2533, -61.4867, 'Rafaela', false);
+    // Try to get user's location automatically
+    if (navigator.geolocation) {
+        showLoading();
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                // Get city name from coordinates using Nominatim
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=es`);
+                    const data = await response.json();
+                    const name = data.address?.city ||
+                        data.address?.town ||
+                        data.address?.village ||
+                        data.address?.municipality ||
+                        data.address?.county ||
+                        'Tu ubicación';
+                    getWeather(latitude, longitude, name, true);
+                } catch (error) {
+                    getWeather(latitude, longitude, 'Tu ubicación', true);
+                }
+            },
+            (error) => {
+                // If user denies permission or error, fallback to Rafaela
+                console.log('Geolocalización no disponible, usando ubicación por defecto');
+                getWeather(-31.2533, -61.4867, 'Rafaela', false);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    } else {
+        // Fallback for browsers without geolocation
+        getWeather(-31.2533, -61.4867, 'Rafaela', false);
+    }
 });
 
 // Keyboard navigation for search
