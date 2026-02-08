@@ -161,11 +161,28 @@ document.addEventListener('click', (e) => {
 
 async function searchCities(query) {
     try {
-        const response = await fetch(`${GEO_API}?name=${encodeURIComponent(query)}&count=5&language=es`);
+        // Using Nominatim (OpenStreetMap) for maximum worldwide coverage
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=6&accept-language=es&addressdetails=1`);
         const data = await response.json();
 
-        if (data.results && data.results.length > 0) {
-            displaySearchResults(data.results);
+        if (data && data.length > 0) {
+            // Filter to only show places (cities, towns, villages, etc.)
+            const places = data.filter(item =>
+                item.type === 'city' ||
+                item.type === 'town' ||
+                item.type === 'village' ||
+                item.type === 'municipality' ||
+                item.type === 'administrative' ||
+                item.class === 'place' ||
+                item.class === 'boundary'
+            );
+
+            if (places.length > 0) {
+                displaySearchResults(places);
+            } else {
+                // If no places found, show all results
+                displaySearchResults(data.slice(0, 5));
+            }
         } else {
             searchResults.innerHTML = '<li><span class="city">No se encontraron resultados</span></li>';
             searchResults.classList.add('active');
@@ -176,12 +193,26 @@ async function searchCities(query) {
 }
 
 function displaySearchResults(results) {
-    searchResults.innerHTML = results.map(result => `
-        <li data-lat="${result.latitude}" data-lon="${result.longitude}" data-name="${result.name}">
-            <span class="city">${result.name}</span>
-            <span class="country">${result.admin1 ? result.admin1 + ', ' : ''}${result.country}</span>
-        </li>
-    `).join('');
+    searchResults.innerHTML = results.map(result => {
+        // Extract location name and details from Nominatim response
+        const name = result.address?.city ||
+            result.address?.town ||
+            result.address?.village ||
+            result.address?.municipality ||
+            result.name ||
+            result.display_name.split(',')[0];
+
+        const state = result.address?.state || result.address?.region || '';
+        const country = result.address?.country || '';
+        const locationDetail = [state, country].filter(Boolean).join(', ');
+
+        return `
+            <li data-lat="${result.lat}" data-lon="${result.lon}" data-name="${name}">
+                <span class="city">${name}</span>
+                <span class="country">${locationDetail}</span>
+            </li>
+        `;
+    }).join('');
 
     searchResults.classList.add('active');
 
