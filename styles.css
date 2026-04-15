@@ -1,7 +1,7 @@
 :root {
     /* Colors */
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --day-gradient: linear-gradient(135deg, #74b9ff 0%, #0984e3 50%, #6c5ce7 100%);
+    --day-gradient: linear-gradient(135deg, #ff7e5f 0%, #feb47b 50%, #c44569 100%);
     --night-gradient: linear-gradient(135deg, #2d3436 0%, #000428 50%, #004e92 100%);
     --sunset-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
 
@@ -609,7 +609,7 @@ body.sunset {
 /* Weather Details Grid */
 .weather-details {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
     gap: var(--spacing-md);
     padding-top: var(--spacing-lg);
     border-top: 1px solid var(--glass-border);
@@ -1345,7 +1345,4 @@ body.sunset {
         justify-content: flex-start;
     }
 
-    .weather-details {
-        grid-template-columns: repeat(6, 1fr);
-    }
 }

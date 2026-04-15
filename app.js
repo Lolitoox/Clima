@@ -24,6 +24,7 @@ const windSpeed = document.getElementById('windSpeed');
 const pressure = document.getElementById('pressure');
 const uvIndex = document.getElementById('uvIndex');
 const precipitation = document.getElementById('precipitation');
+const precipitationAccumulated = document.getElementById('precipitationAccumulated');
 const locationSubtitle = document.getElementById('locationSubtitle');
 const hourlyForecast = document.getElementById('hourlyForecast');
 const weeklyForecast = document.getElementById('weeklyForecast');
@@ -286,7 +287,7 @@ async function getWeather(lat, lon, name, isCurrentLocation = false) {
             latitude: lat,
             longitude: lon,
             current: 'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_gusts_10m,surface_pressure,is_day,precipitation',
-            hourly: 'temperature_2m,weather_code,precipitation_probability',
+            hourly: 'temperature_2m,weather_code,precipitation_probability,precipitation',
             daily: 'weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,relative_humidity_2m_max,surface_pressure_max',
             timezone: 'auto',
             forecast_days: 9
@@ -342,6 +343,25 @@ function updateWeather(data, name, lat, lon) {
     const todayPrecip = daily.precipitation_sum?.[0] || 0;
     const todayProbability = daily.precipitation_probability_max?.[0] || 0;
     precipitation.innerHTML = `${todayPrecip.toFixed(1)} mm<br><small>${todayProbability}%</small>`;
+
+    // Acumulado de lluvia desde 00:00 hasta la hora actual local del lugar
+    const currentTimeStr = current.time || ''; // formato "YYYY-MM-DDTHH:00"
+    const todayPrefix = currentTimeStr.slice(0, 10);
+    const currentHour = parseInt(currentTimeStr.slice(11, 13), 10);
+    let accumulated = 0;
+    if (todayPrefix && hourly.time && hourly.precipitation) {
+        for (let i = 0; i < hourly.time.length; i++) {
+            const t = hourly.time[i];
+            if (!t.startsWith(todayPrefix)) continue;
+            const h = parseInt(t.slice(11, 13), 10);
+            if (h > currentHour) break;
+            accumulated += hourly.precipitation[i] || 0;
+        }
+    }
+    const pctOfDay = todayPrecip > 0 ? Math.round((accumulated / todayPrecip) * 100) : 0;
+    if (precipitationAccumulated) {
+        precipitationAccumulated.innerHTML = `${accumulated.toFixed(1)} mm<br><small>${pctOfDay}% del día</small>`;
+    }
 
     // Update background based on time and weather
     updateBackground(current.is_day, weatherInfo.type);
